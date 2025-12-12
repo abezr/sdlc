@@ -27,12 +27,12 @@ arch-docs/
 ### 1. Context Diagram
 - Shows the AI SDLC system and its interactions with external entities
 - Includes: Developers, Project Managers, Stakeholders, Database, VCS, CI/CD, AI Services
-- **File**: [`c4-context-diagram.md`](arch-docs/c4-context-diagram.md)
+- **File**: [`c4-context-diagram.md`](./c4-context-diagram.md)
 
 ### 2. Container Diagram  
 - Shows the major containers that make up the AI SDLC system
 - Includes: Web App, API Gateway, Authentication, Project Service, AI Service, Documentation Service, CI/CD Service
-- **File**: [`c4-container-diagram.md`](arch-docs/c4-container-diagram.md)
+- **File**: [`c4-container-diagram.md`](./c4-container-diagram.md)
 
 ### 3. Component Diagrams
 - Detailed component breakdown for key services:
@@ -40,7 +40,7 @@ arch-docs/
   - API Gateway components (routing, middleware, service proxy)
   - Project Service components (controllers, workflow engine, VCS integration)
   - AI Service components (code analysis, generation, prompt engineering)
-- **File**: [`c4-component-diagrams.md`](arch-docs/c4-component-diagrams.md)
+- **File**: [`c4-component-diagrams.md`](./c4-component-diagrams.md)
 
 ### 4. Code Diagrams
 - Class-level diagrams showing detailed implementation:
@@ -48,7 +48,7 @@ arch-docs/
   - API Gateway code structure (routes, middleware, service registry)
   - AI Service implementation (models, context management, prompt engineering)
   - Documentation Service structure (document store, diagram generation, search)
-- **File**: [`c4-code-diagrams.md`](arch-docs/c4-code-diagrams.md)
+- **File**: [`c4-code-diagrams.md`](./c4-code-diagrams.md)
 
 ## How to Use These Diagrams
 

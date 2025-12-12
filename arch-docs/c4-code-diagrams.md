@@ -79,7 +79,8 @@ classDiagram
         +getRelevantContext(query: string): string
     }
     
-    enum ProjectStatus {
+    class ProjectStatus {
+        <<enumeration>>
         PLANNING
         DEVELOPMENT
         TESTING
@@ -87,22 +88,25 @@ classDiagram
         MAINTENANCE
         COMPLETED
     }
-    
-    enum UserRole {
+
+    class UserRole {
+        <<enumeration>>
         DEVELOPER
         PROJECT_MANAGER
         STAKEHOLDER
         ADMIN
     }
-    
-    enum StepStatus {
+
+    class StepStatus {
+        <<enumeration>>
         NOT_STARTED
         IN_PROGRESS
         COMPLETED
         BLOCKED
     }
-    
-    enum TaskStatus {
+
+    class TaskStatus {
+        <<enumeration>>
         TODO
         IN_PROGRESS
         CODE_REVIEW
@@ -183,15 +187,17 @@ classDiagram
         +healthCheck(): ServiceHealth[]
     }
     
-    enum HttpMethod {
+    class HttpMethod {
+        <<enumeration>>
         GET
         POST
         PUT
         DELETE
         PATCH
     }
-    
-    enum LogLevel {
+
+    class LogLevel {
+        <<enumeration>>
         INFO
         WARNING
         ERROR
@@ -292,7 +298,8 @@ classDiagram
         +generateReport(): string
     }
     
-    enum ModelType {
+    class ModelType {
+        <<enumeration>>
         CODE_ANALYSIS
         CODE_GENERATION
         TEST_GENERATION
@@ -391,7 +398,8 @@ classDiagram
         +export(format: ExportFormat): Promise<Buffer>
     }
     
-    enum DocumentType {
+    class DocumentType {
+        <<enumeration>>
         REQUIREMENTS
         ARCHITECTURE
         API_DOCUMENTATION
@@ -399,8 +407,9 @@ classDiagram
         TECHNICAL_SPECIFICATION
         MEETING_NOTES
     }
-    
-    enum DiagramType {
+
+    class DiagramType {
+        <<enumeration>>
         C4_CONTEXT
         C4_CONTAINER
         C4_COMPONENT
@@ -410,8 +419,9 @@ classDiagram
         CLASS
         ERD
     }
-    
-    enum ExportFormat {
+
+    class ExportFormat {
+        <<enumeration>>
         PDF
         HTML
         MARKDOWN
