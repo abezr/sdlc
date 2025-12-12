@@ -9,6 +9,7 @@ Architecture for a toolchain that: (1) annotates the existing codebase with AI-f
 - **Refactor & dedup**: Safety-checked rewrites that consolidate near-duplicates, shrink token footprint, extract components/aggregates, and preserve behavior via generated tests.
 - **MCP-first surface**: All capabilities available as MCP tools; transport usable by CLI, VS Code extension, and SPA client.
 - **Observability & BI UX**: Dashboards for coverage, drift, graph health, refactor risk, and agent actions; review queues for human approval.
+- **Inspector/Auditor mode**: Guardrail monitor for validation, rate limits, outbox integrity, PII scrubbing, duplicate debt, and unsafe plans; issues warnings to agents and humans with escalation/waivers.
 
 ## Container View (C4)
 
@@ -87,8 +88,8 @@ C4Container
 ## Observability, Governance, and Safety
 - Metrics: coverage (test/annotation), graph completeness, duplicate density, token footprint, refactor risk, success/failure rates, latency.
 - Tracing: per-tool spans with workspace + commit hash tags; event stream consumable by SPA and extension.
-- Policies: workspace allowlists, PII scrubbing in embeddings, rate limits, audit logs for agent actions; dry-run defaults for write operations.
-- Human-in-loop: approval gates for refactors and test application; review queues; explainability via graph-backed context panes.
+- Policies: workspace allowlists, PII scrubbing in embeddings, rate limits, audit logs for agent actions; dry-run defaults for write operations; inspector rules with waivers/expiry.
+- Human-in-loop: approval gates for refactors and test application; review queues; explainability via graph-backed context panes; auditor warnings routed to MCP streams, VS Code toasts, and BI panels.
 
 ## Deployment Modes
 - **Local dev**: MCP server runs with stdio transport; CLI and VS Code extension connect directly; SPA served locally.

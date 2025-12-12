@@ -89,6 +89,30 @@ C4Component
 5) **MCP tools**: Tools are served by MCP; orchestrator/CLI/VS Code/SPA invoke them; dispatcher injects available deps.
 6) **Observability**: All steps emit spans/metrics to Observability service and BI dashboards.
 
+## Inspector / Auditor Mode
+- **Purpose**: Monitor guardrails/policies (DTO validation, idempotency, rate limits, PII scrubbing, outbox integrity), detect unsafe plans, and whistleblow obvious correctness issues.
+- **Placement**: Runs as a sidecar in orchestrator + plugin host; subscribes to spans/events/metrics and inspects MCP tool calls.
+- **Checks**:
+  - Missing validation or DTO mismatch for a strategy.
+  - Outbox writes without paired commit; orphaned events; relay lag.
+  - Excessive retries, circuit trips, or rate-limit breaches.
+  - Token bloat in generated patches/tests; duplicate code without dedup plan.
+  - Unreviewed tool/strategy activation (bypassing approval queue).
+  - PII/secret leakage in embeddings/logs.
+- **Alerting (unobtrusive but effective)**:
+  - For implementor agent: return structured MCP warnings with severity + remediation hint; throttle repeats; block only on critical (e.g., missing validation or outbox off).
+  - For humans: non-modal toasts in SPA/VS Code with “Inspect” deep link; BI panel “Auditor Warnings” with filters; daily digest in CLI (`ai-maint inspector report`).
+  - Escalation: if the same issue repeats N times or is critical, open a review task in the approval queue instead of spamming.
+- **APIs**:
+  - `inspector.stream` (MCP): subscribe to live findings with scopes (strategy/tool/commit).
+  - `inspector.snapshot` (MCP): fetch current outstanding findings grouped by severity.
+  - `inspector.waive` (MCP): record a waivers with scope + expiry + rationale (logged).
+- **Integration points**:
+  - Fx middlewares wrap strategy dispatch to record validation/exceptions and emit events to inspector.
+  - Tool dispatcher wraps `run` to log schema adherence and argument filtering.
+  - Observability service forwards spans/metrics to inspector rules engine.
+- **Signal hygiene**: deduplicate similar warnings, cap rate, include suppression/waiver metadata, and carry provenance (strategy/tool, commit, workspace, actor).
+
 ## Developer Workflow (Kilocode/Architect)
 - Provide: service interfaces, sample strategy, DTO models, and algorithm description to the architect agent.
 - Architect outputs: new strategy file (Fx provider + DTO + tests) or new tool module with `TOOL_SCHEMA` + `run`.
