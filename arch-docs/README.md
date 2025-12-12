@@ -55,6 +55,11 @@ arch-docs/
 - Includes container view, pipelines, data contracts, and safety/observability considerations.
 - **File**: [`ai-maintainer-architecture.md`](./ai-maintainer-architecture.md)
 
+### 6. Pluggable Architecture (Fx + MCP)
+- Shows how strategies/tools are registered as Fx providers in DI groups, executed with UoW + transactional outbox, and exposed via MCP with dynamic tool dispatch.
+- Includes developer workflow (architect + kilocode) and safety guardrails.
+- **File**: [`ai-maintainer-pluggable-architecture.md`](./ai-maintainer-pluggable-architecture.md)
+
 ## How to Use These Diagrams
 
 1. **Start with Context**: Understand the system's place in the broader ecosystem
