@@ -50,6 +50,11 @@ arch-docs/
   - Documentation Service structure (document store, diagram generation, search)
 - **File**: [`c4-code-diagrams.md`](./c4-code-diagrams.md)
 
+### 5. AI Maintainer Toolchain Architecture
+- Architecture for the MCP-exposed toolchain that annotates code, builds the knowledge graph, generates regression packs, performs refactors/deduplication, and provides BI UX across CLI, VS Code, and SPA.
+- Includes container view, pipelines, data contracts, and safety/observability considerations.
+- **File**: [`ai-maintainer-architecture.md`](./ai-maintainer-architecture.md)
+
 ## How to Use These Diagrams
 
 1. **Start with Context**: Understand the system's place in the broader ecosystem

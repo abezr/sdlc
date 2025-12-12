@@ -6,6 +6,8 @@ This document contains code-level diagrams showing the key classes, interfaces, 
 
 ```mermaid
 classDiagram
+    direction LR
+
     class Project {
         -id: string
         -name: string
@@ -121,12 +123,24 @@ classDiagram
     Task "1" -- "1" User : assignee
     AIAssistant "1" -- "1" ProjectContext : uses
     AIAssistant "1" *-- "1..*" AIModel : models
+
+    classDef core fill:#4CAF50,stroke:#2E7D32,stroke-width:2px,color:#fff;
+    classDef user fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff;
+    classDef ai fill:#FF9800,stroke:#E65100,stroke-width:2px,color:#fff;
+    classDef enum fill:#607D8B,stroke:#37474F,stroke-width:2px,color:#fff;
+
+    class Project,Workflow,WorkflowStep,Task core
+    class User user
+    class AIAssistant,ProjectContext ai
+    class ProjectStatus,UserRole,StepStatus,TaskStatus enum
 ```
 
 ## API Gateway Code Structure
 
 ```mermaid
 classDiagram
+    direction LR
+
     class ApiGateway {
         -routes: Route[]
         -middlewares: Middleware[]
@@ -213,12 +227,24 @@ classDiagram
     AuthMiddleware --|> Middleware
     RateLimiter --|> Middleware
     RequestLogger --|> Middleware
+
+    classDef gateway fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff;
+    classDef core fill:#4CAF50,stroke:#2E7D32,stroke-width:2px,color:#fff;
+    classDef middleware fill:#FF9800,stroke:#E65100,stroke-width:2px,color:#fff;
+    classDef enum fill:#607D8B,stroke:#37474F,stroke-width:2px,color:#fff;
+
+    class ApiGateway gateway
+    class Route,ServiceProxy,ServiceRegistry core
+    class Middleware,AuthMiddleware,RateLimiter,RequestLogger middleware
+    class HttpMethod,LogLevel enum
 ```
 
 ## AI Service Code Structure
 
 ```mermaid
 classDiagram
+    direction LR
+
     class AIService {
         -models: Map<string, AIModel>
         -contextManager: ContextManager
@@ -316,12 +342,24 @@ classDiagram
     ContextManager "1" -- "1" KnowledgeBase : knowledge
     PromptEngine "1" -- "1" ContextManager : context
     PromptEngine "1" *-- "0..*" PromptTemplate : templates
+
+    classDef ai fill:#FF9800,stroke:#E65100,stroke-width:2px,color:#fff;
+    classDef context fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff;
+    classDef analysis fill:#9C27B0,stroke:#6A1B9A,stroke-width:2px,color:#fff;
+    classDef enum fill:#607D8B,stroke:#37474F,stroke-width:2px,color:#fff;
+
+    class AIService,AIModel,CodeAnalysisModel,CodeGenerationModel,PromptEngine ai
+    class ContextManager,ProjectContext,KnowledgeBase context
+    class CodeAnalysis,TestSuite analysis
+    class ModelType enum
 ```
 
 ## Documentation Service Code Structure
 
 ```mermaid
 classDiagram
+    direction LR
+
     class DocumentationService {
         -documentStore: DocumentStore
         -diagramGenerator: DiagramGenerator
@@ -438,3 +476,12 @@ classDiagram
     DiagramGenerator "1" *-- "0..*" Diagram : diagrams
     SearchEngine "1" -- "1" SearchIndex : index
     SearchEngine "1" -- "1" TextAnalyzer : analyzer
+
+    classDef service fill:#4CAF50,stroke:#2E7D32,stroke-width:2px,color:#fff;
+    classDef storage fill:#607D8B,stroke:#37474F,stroke-width:2px,color:#fff;
+    classDef enum fill:#607D8B,stroke:#37474F,stroke-width:2px,color:#fff;
+
+    class DocumentationService,DiagramGenerator,SearchEngine service
+    class DocumentStore,S3DocumentStore,Document,Diagram storage
+    class DocumentType,DiagramType,ExportFormat enum
+```
