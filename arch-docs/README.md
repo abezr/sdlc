@@ -60,6 +60,14 @@ arch-docs/
 - Includes developer workflow (architect + kilocode) and safety guardrails.
 - **File**: [`ai-maintainer-pluggable-architecture.md`](./ai-maintainer-pluggable-architecture.md)
 
+### 7. Roadmap
+- Task-per-feature plan sized for 50–300 LOC modules covering MCP shell, dispatcher, outbox, annotator, graph ingest, tests, refactor, observability, inspector, adapters, CLI, VS Code, SPA, approvals, CI, and docs.
+- **File**: [`roadmap.md`](./roadmap.md)
+
+### 8. Strategy & Tool Guide
+- Quick templates for Go/Fx strategies and Python tool modules for dispatcher auto-load.
+- **File**: [`strategy-tool-guide.md`](./strategy-tool-guide.md)
+
 ## How to Use These Diagrams
 
 1. **Start with Context**: Understand the system's place in the broader ecosystem
