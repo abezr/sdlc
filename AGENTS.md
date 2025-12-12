@@ -210,6 +210,12 @@ class ToolManager {
 }
 ```
 
+### Plugin Architecture (AI Maintainer)
+- Prefer the TypeScript plugin host (`src/plugin-host/index.ts`) with the minimal DI container (`src/plugin-host/di.ts`) for module-scoped lifecycles instead of mirroring Fx directly.
+- Register strategies by topic; keep handlers pure and inject deps (logger, db/outbox adapters) via the container.
+- Use the dynamic tool dispatcher (`src/dispatcher/tool_dispatcher.py`) for Python tools exposing `TOOL_SCHEMA` + `run`; keep responses normalized (`{status, data|error}`).
+- Route observability events into the inspector (`src/inspector/engine.ts`) and surface warnings through MCP streams and BI/VS Code toasts rather than failing silently.
+
 ## Best Practices
 
 ### General Guidelines

@@ -19,7 +19,11 @@ arch-docs/
 ├── c4-context-diagram.md              # System context diagram
 ├── c4-container-diagram.md            # Container-level architecture
 ├── c4-component-diagrams.md           # Component-level diagrams
-└── c4-code-diagrams.md                # Code-level class diagrams
+├── c4-code-diagrams.md                # Code-level class diagrams
+├── ai-maintainer-architecture.md      # Maintainer toolchain architecture (MCP, annotator, graph, tests, refactor, BI)
+├── ai-maintainer-pluggable-architecture.md # Plugin/DI pattern + inspector mode
+├── roadmap.md                         # Task-per-feature plan (50–300 LOC)
+└── strategy-tool-guide.md             # Templates for strategies/tools
 ```
 
 ## Diagrams Summary
@@ -55,9 +59,9 @@ arch-docs/
 - Includes container view, pipelines, data contracts, and safety/observability considerations.
 - **File**: [`ai-maintainer-architecture.md`](./ai-maintainer-architecture.md)
 
-### 6. Pluggable Architecture (Fx + MCP)
-- Shows how strategies/tools are registered as Fx providers in DI groups, executed with UoW + transactional outbox, and exposed via MCP with dynamic tool dispatch.
-- Includes developer workflow (architect + kilocode) and safety guardrails.
+### 6. Pluggable Architecture (DI + MCP)
+- Shows how strategies/tools are registered in DI groups, executed with UoW + transactional outbox, and exposed via MCP with dynamic tool dispatch.
+- Includes developer workflow (architect + kilocode) and safety guardrails; TypeScript host with minimal DI container.
 - **File**: [`ai-maintainer-pluggable-architecture.md`](./ai-maintainer-pluggable-architecture.md)
 
 ### 7. Roadmap
