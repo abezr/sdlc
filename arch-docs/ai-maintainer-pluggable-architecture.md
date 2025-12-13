@@ -1,9 +1,9 @@
-# AI Maintainer Pluggable Architecture (Fx + MCP)
+# AI Maintainer Pluggable Architecture (DI + MCP)
 
-Plug-in architecture for the AI Maintainer toolchain that matches the described Fx-based strategy pattern: strategies are registered as DI providers (grouped), carry lifecycle metadata (topics, DTO, UoW), rely on transactional outbox for external effects, and are exposed to AI agents via MCP and a dynamic tool dispatcher.
+Plug-in architecture for the AI Maintainer toolchain: strategies are registered into a DI container (grouped by topic), carry lifecycle metadata (topics, DTO, UoW), rely on transactional outbox for external effects, and are exposed to AI agents via MCP and a dynamic tool dispatcher.
 
 ## Principles
-- **Group-based DI**: Strategies register via `fx.Provide` into a shared group; consumers inject `[]Strategy` via `fx.In`.
+- **Group-based DI**: Strategies register into a shared group; the dispatcher injects `Strategy[]` from the DI container.
 - **Self-contained lifecycle**: Each strategy declares input topic, DTO contract, UoW handler, and outbox events. No hidden global state.
 - **Transactional outbox**: External side effects are modeled as outbox events; strategies only touch DB + enqueue work.
 - **Pluggable discovery**: New strategies/tools are discovered by scanning plugin folders; no core changes.
@@ -16,17 +16,17 @@ C4Component
     title Pluggable Strategy & Tool Runtime
 
     System_Boundary(toolchain, "AI Maintainer Toolchain") {
-        Container(mcp, "MCP Server", "Node.js", "Exposes tools to agents/CLI/VS Code/SPA")
-        Container(orchestrator, "Orchestrator", "Node.js", "Schedules jobs, streams events")
-        Container(pluginHost, "Plugin Host", "Go + Fx", "Loads strategies via DI groups; executes UoW; writes outbox")
-        Container(toolDispatcher, "Dynamic Tool Dispatcher", "Node.js/Python", "Loads tool modules, inspects run signature, injects dynamic args")
+        Container(mcp, "MCP Server", "Node.js/TypeScript", "Exposes tools to agents/CLI/VS Code/SPA")
+        Container(orchestrator, "Orchestrator", "Node.js/TypeScript", "Schedules jobs, streams events")
+        Container(pluginHost, "Plugin Host", "TypeScript + minimal DI", "Loads strategies grouped by topic; executes UoW; writes outbox")
+        Container(toolDispatcher, "Dynamic Tool Dispatcher", "TypeScript/Python", "Loads tool modules, inspects run signature, injects dynamic args")
         ContainerDb(db, "App DB", "Postgres", "State, UoW data")
         ContainerDb(outbox, "Transactional Outbox", "Postgres table", "Buffered external events")
         Container(queue, "Workqueue", "Redis/SQS/NATS", "Dispatch outbound events")
     }
 
     Rel(mcp, orchestrator, "Receives tool invocations/events", "MCP/IPC")
-    Rel(orchestrator, pluginHost, "Invokes strategies", "gRPC/IPC")
+    Rel(orchestrator, pluginHost, "Invokes strategies", "IPC")
     Rel(pluginHost, db, "Reads/Writes", "SQL")
     Rel(pluginHost, outbox, "Writes outbound events", "SQL")
     Rel(outbox, queue, "Publisher", "Connector/relay")
@@ -34,39 +34,30 @@ C4Component
     Rel(orchestrator, toolDispatcher, "Executes tool.run with injected deps", "IPC/call")
 ```
 
-## Strategy Contract (Go + Fx)
+## Strategy Contract (TypeScript + minimal DI)
 - Interface shape:
-  ```go
-  type Strategy interface {
-      Name() string
-      Topic() string           // inbound topic to consume
-      DTO() any                // expected DTO type (used for decoding/validation)
-      Handle(ctx context.Context, msg any, deps Deps) (OutboxEvents, error)
+  ```ts
+  export interface Strategy {
+    name(): string;
+    topic(): string; // inbound topic to consume
+    handle(message: unknown, deps: Deps): Promise<void> | void;
   }
 
-  type Deps struct {
-      fx.In
-      DB *sql.DB
-      Logger *zap.Logger
-      TimeSource clock.Clock
-      // optional typed services (e.g., Annotator, GraphBuilder, TestGen)
-  }
+  export type Deps = {
+    logger: Logger;
+    // optional: db, outbox, metrics, adapters
+  };
   ```
 - Registration example:
-  ```go
-  var Module = fx.Module("strategies",
-      fx.Provide(
-          fx.Annotate(NewAnnotateStrategy, fx.ResultTags(`group:"strategies"`)),
-          fx.Annotate(NewGraphIngestStrategy, fx.ResultTags(`group:"strategies"`)),
-      ),
-  )
+  ```ts
+  const registry = new StrategyRegistry();
+  registry.register(new AnnotateStrategy());
+  registry.register(new GraphIngestStrategy());
 
-  type StrategySet struct {
-      fx.In
-      Strategies []Strategy `group:"strategies"`
-  }
+  const dispatcher = new Dispatcher(registry, { logger, /* deps */ });
+  await dispatcher.dispatch("annotate.topic", payload);
   ```
-- Consumer usage: `Dispatcher` injects `StrategySet`, builds topic -> strategy map, and routes inbound messages.
+- For lifecycle/start/stop and grouped wiring, use the minimal DI container (`src/plugin-host/di.ts`) to register strategies and resources as providers.
 
 ## Tool Plugin Contract (Dynamic run, MCP-exposed)
 - Each tool module exports `TOOL_SCHEMA` (JSON schema) and `run(**kwargs)`.
@@ -82,8 +73,8 @@ C4Component
 - Tool registration: scan `plugins/` or `tools/` for `*_tool.py`, load `TOOL_SCHEMA`, register with MCP server; no core edits.
 
 ## Execution Flow
-1) **Registration**: Fx app starts, loads all strategy providers in plugin folder, injects grouped `[]Strategy` into dispatcher.
-2) **Message handling**: Dispatcher listens on topics (or receives from orchestrator), finds matching strategy, decodes DTO, calls `Handle`.
+1) **Registration**: Plugin host boots, loads strategy providers (via registry or DI module), grouped by topic.
+2) **Message handling**: Dispatcher listens on topics/IPC, finds matching strategy, decodes DTO, calls `handle`.
 3) **UoW + outbox**: Handler performs DB work in transaction, writes outbound events to outbox table.
 4) **Relay**: Outbox relayer publishes events to `queue`; downstream connectors deliver to external systems.
 5) **MCP tools**: Tools are served by MCP; orchestrator/CLI/VS Code/SPA invoke them; dispatcher injects available deps.
@@ -101,27 +92,27 @@ C4Component
   - PII/secret leakage in embeddings/logs.
 - **Alerting (unobtrusive but effective)**:
   - For implementor agent: return structured MCP warnings with severity + remediation hint; throttle repeats; block only on critical (e.g., missing validation or outbox off).
-  - For humans: non-modal toasts in SPA/VS Code with “Inspect” deep link; BI panel “Auditor Warnings” with filters; daily digest in CLI (`ai-maint inspector report`).
+  - For humans: non-modal toasts in SPA/VS Code with "Inspect" deep link; BI panel "Auditor Warnings" with filters; daily digest in CLI (`ai-maint inspector report`).
   - Escalation: if the same issue repeats N times or is critical, open a review task in the approval queue instead of spamming.
 - **APIs**:
   - `inspector.stream` (MCP): subscribe to live findings with scopes (strategy/tool/commit).
   - `inspector.snapshot` (MCP): fetch current outstanding findings grouped by severity.
-  - `inspector.waive` (MCP): record a waivers with scope + expiry + rationale (logged).
+  - `inspector.waive` (MCP): record a waiver with scope + expiry + rationale (logged).
 - **Integration points**:
-  - Fx middlewares wrap strategy dispatch to record validation/exceptions and emit events to inspector.
+  - DI hooks wrap strategy dispatch to record validation/exceptions and emit events to inspector.
   - Tool dispatcher wraps `run` to log schema adherence and argument filtering.
   - Observability service forwards spans/metrics to inspector rules engine.
 - **Signal hygiene**: deduplicate similar warnings, cap rate, include suppression/waiver metadata, and carry provenance (strategy/tool, commit, workspace, actor).
 
 ## Developer Workflow (Kilocode/Architect)
 - Provide: service interfaces, sample strategy, DTO models, and algorithm description to the architect agent.
-- Architect outputs: new strategy file (Fx provider + DTO + tests) or new tool module with `TOOL_SCHEMA` + `run`.
+- Architect outputs: new strategy file (TS class + registration + tests) or new tool module with `TOOL_SCHEMA` + `run`.
 - Human review: BI/UX surfaces plan + diff; approval before activation.
-- Deployment: Drop new strategy/tool file into plugin folder; restart/ hot-reload Fx app or tool dispatcher; MCP surface updates automatically.
+- Deployment: Drop new strategy/tool file into plugin folder; restart/hot-reload plugin host or tool dispatcher; MCP surface updates automatically.
 
 ## Safety & Guardrails
 - DTO validation on ingest; type-checked decode.
 - Idempotency keys per message; retry with backoff.
 - Outbox relayer with exactly-once semantics per event id.
 - Rate limits per strategy/topic; circuit breakers on downstream connectors.
-- Audit log of tool/strategy executions; MCP actions trace to user/agent/session.
+- Audit log of tool/strategy executions; MCP actions trace to user/agent/session; inspector warnings visible to agents and humans.
